@@ -1,0 +1,19 @@
+.build/
+.swiftpm/
+.DS_Store
+
+# Готовые сборки и документы
+dist/
+output/
+*.app
+*.dmg
+*.dmg.sha256
+*.zip
+*.zip.sha256
+
+# Генерируемые промежуточные изображения
+Resources/AppIcon.iconset/
+
+# Локальные файлы IDE
+*.xcuserstate
+.vscode/
