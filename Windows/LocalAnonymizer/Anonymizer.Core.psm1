@@ -287,12 +287,14 @@ function Test-LooksLikeRussianPersonName {
         return $false
     }
 
+    $firstNameCount = 0
     $hasFirstName = $false
     $hasSurname = $false
     $hasPatronymic = $false
 
     foreach ($word in $words) {
         if ($script:CommonFirstNames -contains $word) {
+            $firstNameCount++
             $hasFirstName = $true
         }
         foreach ($ending in $script:SurnameEndings) {
@@ -307,6 +309,10 @@ function Test-LooksLikeRussianPersonName {
                 break
             }
         }
+    }
+
+    if ($words.Count -eq 2 -and $firstNameCount -eq 1) {
+        return $true
     }
 
     ($hasFirstName -and $hasSurname) -or
@@ -378,7 +384,7 @@ function Invoke-TextAnonymization {
         -Text $Text `
         -Pattern '(?<![\p{L}\p{N}._%+\-])[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-ZА-ЯЁ]{2,}(?![\p{L}\p{N}_\-])' `
         -Category 'EMAIL' `
-        -Priority 100
+        -Priority 200
 
     $ipStartIndex = $matches.Count
     Add-PatternDetections `
@@ -386,7 +392,7 @@ function Invoke-TextAnonymization {
         -Text $Text `
         -Pattern '(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])' `
         -Category 'IP_ADDRESS' `
-        -Priority 95
+        -Priority 195
 
     for ($index = $matches.Count - 1; $index -ge $ipStartIndex; $index--) {
         $validIP = $true
@@ -411,7 +417,7 @@ function Invoke-TextAnonymization {
         -Text $Text `
         -Pattern '(?<![\p{L}\d])(?:\+7|8)[ \t\-()]*(?:\d[ \t\-()]*){10}(?!\d)' `
         -Category 'PHONE' `
-        -Priority 90
+        -Priority 190
 
     $requisitePatterns = @(
         '\bИНН[ \t]*[:№\-]?[ \t]*(\d{12}|\d{10})(?!\d)',
@@ -431,7 +437,7 @@ function Invoke-TextAnonymization {
             -Text $Text `
             -Pattern $pattern `
             -Category 'REQUISITE' `
-            -Priority 110 `
+            -Priority 180 `
             -CaptureGroup 1
     }
 
@@ -446,7 +452,7 @@ function Invoke-TextAnonymization {
             -Text $Text `
             -Pattern $pattern `
             -Category 'REQUISITE' `
-            -Priority 130 `
+            -Priority 185 `
             -CaptureGroup 1
     }
 
@@ -465,13 +471,29 @@ function Invoke-TextAnonymization {
         -Priority 65 `
         -CaptureGroup 1
 
+    Add-PatternDetections `
+        -Target $matches `
+        -Text $Text `
+        -Pattern '(?<![\p{L}\p{N}])(?:[А-ЯЁ]\.[ \t]*){1,2}[А-ЯЁ][а-яё\-]{2,30}(?![\p{L}\p{N}])' `
+        -Category 'PERSON' `
+        -Priority 80 `
+        -IgnoreCase $false
+
+    Add-PatternDetections `
+        -Target $matches `
+        -Text $Text `
+        -Pattern '(?<![\p{L}\p{N}])[А-ЯЁ][а-яё\-]{2,30}[ \t]+[А-ЯЁ]\.(?:[ \t]*[А-ЯЁ]\.)?(?![\p{L}\p{N}])' `
+        -Category 'PERSON' `
+        -Priority 80 `
+        -IgnoreCase $false
+
     $personCandidates = New-Object System.Collections.Generic.List[object]
     Add-PatternDetections `
         -Target $personCandidates `
         -Text $Text `
-        -Pattern '\b[А-ЯЁ][а-яё\-]{1,30}(?:\s+[А-ЯЁ][а-яё\-]{1,30}){1,2}\b' `
+        -Pattern '(?<![\p{L}\p{N}])[А-ЯЁ][а-яё\-]{1,30}(?:[ \t]+[А-ЯЁ][а-яё\-]{1,30}){1,2}(?![\p{L}\p{N}])' `
         -Category 'PERSON' `
-        -Priority 50 `
+        -Priority 62 `
         -IgnoreCase $false
 
     foreach ($candidate in $personCandidates) {

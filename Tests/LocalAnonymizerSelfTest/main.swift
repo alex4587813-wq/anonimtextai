@@ -233,6 +233,104 @@ private func testInvalidReplacementMasksAreIgnored() {
 }
 
 @MainActor
+private func testFullNamesDoNotCrossLineBreaks() {
+    let source = """
+    Серова Татьяна
+    Силаева Ирина
+    Черноглазова Ольга
+
+    Полыгаева Татьяна
+    Солодовникова Ксения
+    """
+    let result = engine.anonymize(source)
+
+    checkEqual(
+        result.text,
+        """
+        [PERSON_001]
+        [PERSON_002]
+        [PERSON_003]
+
+        [PERSON_004]
+        [PERSON_005]
+        """,
+        "ФИО распознаются отдельно на каждой строке"
+    )
+    check(result.counts[.person] == 5, "найдены все пять ФИО")
+}
+
+@MainActor
+private func testAbbreviatedRussianNames() {
+    let source = """
+    А.Ковешников
+    А. Майборода
+    Ковешников А.
+    А.А. Майборода
+    Майборода А.А.
+    """
+    let result = engine.anonymize(source)
+
+    checkEqual(
+        result.text,
+        """
+        [PERSON_001]
+        [PERSON_002]
+        [PERSON_003]
+        [PERSON_004]
+        [PERSON_005]
+        """,
+        "сокращённые ФИО с одним или двумя инициалами обезличиваются"
+    )
+}
+
+@MainActor
+private func testFullNameWithUncommonSurnameEnding() {
+    let source = """
+    Алексей Майборода
+    Майборода Алексей
+    """
+    let result = engine.anonymize(source)
+
+    checkEqual(
+        result.text,
+        """
+        [PERSON_001]
+        [PERSON_002]
+        """,
+        "полное ФИО распознаётся независимо от окончания фамилии"
+    )
+}
+
+@MainActor
+private func testReplacementTermsDoNotSplitStructuredData() {
+    let settings = AnonymizationSettings(
+        enabledCategories: Set(AnonymizerEngine.Category.allCases),
+        excludedTerms: [],
+        mandatoryCompanyTerms: [
+            "platformix.ru",
+            "+7 999 123-45-67",
+            "192.168.1.10",
+        ]
+    )
+    let source = """
+    Dell-OPM-Request@platformix.ru
+    +7 999 123-45-67
+    192.168.1.10
+    """
+    let result = engine.anonymize(source, settings: settings)
+
+    checkEqual(
+        result.text,
+        """
+        [EMAIL_001]
+        [PHONE_001]
+        [IP_ADDRESS_001]
+        """,
+        "замена слов не разделяет email, телефон и IP"
+    )
+}
+
+@MainActor
 private func testOldSettingsReceiveDefaultMandatoryTerms() {
     let oldJSON = """
     {
@@ -351,6 +449,10 @@ testMandatoryReplacementHasHighestPriority()
 testMandatoryReplacementUsesWordBoundaries()
 testReplacementMaskMatchesWordEndings()
 testInvalidReplacementMasksAreIgnored()
+testFullNamesDoNotCrossLineBreaks()
+testAbbreviatedRussianNames()
+testFullNameWithUncommonSurnameEnding()
+testReplacementTermsDoNotSplitStructuredData()
 testOldSettingsReceiveDefaultMandatoryTerms()
 testCompanyRequisites()
 testPersonalRequisites()

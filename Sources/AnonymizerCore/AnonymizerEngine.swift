@@ -59,14 +59,14 @@ public struct AnonymizerEngine: Sendable {
             in: text,
             pattern: #"(?i)(?<![\p{L}\p{N}._%+\-])[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-ZА-ЯЁ]{2,}(?![\p{L}\p{N}_\-])"#,
             category: .email,
-            priority: 100
+            priority: 200
         )
 
         matches += regexMatches(
             in: text,
             pattern: #"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])"#,
             category: .ipAddress,
-            priority: 95
+            priority: 195
         ).filter { match in
             match.value.split(separator: ".").allSatisfy { part in
                 guard let number = Int(part) else { return false }
@@ -78,7 +78,7 @@ public struct AnonymizerEngine: Sendable {
             in: text,
             pattern: #"(?<![\p{L}\d])(?:\+7|8)[ \t\-()]*(?:\d[ \t\-()]*){10}(?!\d)"#,
             category: .phone,
-            priority: 90
+            priority: 190
         )
 
         matches += requisiteMatches(in: text)
@@ -242,7 +242,7 @@ public struct AnonymizerEngine: Sendable {
                 in: text,
                 pattern: pattern,
                 category: .requisites,
-                priority: 110,
+                priority: 180,
                 captureGroup: 1
             )
         }
@@ -257,7 +257,7 @@ public struct AnonymizerEngine: Sendable {
                 in: text,
                 pattern: pattern,
                 category: .requisites,
-                priority: 130,
+                priority: 185,
                 captureGroup: 1
             )
         }
@@ -311,14 +311,29 @@ public struct AnonymizerEngine: Sendable {
     }
 
     private func personHeuristicMatches(in text: String) -> [Match] {
-        let candidates = regexMatches(
+        var matches = regexMatches(
             in: text,
-            pattern: #"(?u)\b[А-ЯЁ][а-яё\-]{1,30}(?:\s+[А-ЯЁ][а-яё\-]{1,30}){1,2}\b"#,
+            pattern: #"(?u)(?<![\p{L}\p{N}])(?:[А-ЯЁ]\.[ \t]*){1,2}[А-ЯЁ][а-яё\-]{2,30}(?![\p{L}\p{N}])"#,
             category: .person,
-            priority: 50
+            priority: 80
         )
 
-        return candidates.filter { looksLikeRussianPersonName($0.value) }
+        matches += regexMatches(
+            in: text,
+            pattern: #"(?u)(?<![\p{L}\p{N}])[А-ЯЁ][а-яё\-]{2,30}[ \t]+[А-ЯЁ]\.(?:[ \t]*[А-ЯЁ]\.)?(?![\p{L}\p{N}])"#,
+            category: .person,
+            priority: 80
+        )
+
+        let fullNameCandidates = regexMatches(
+            in: text,
+            pattern: #"(?u)(?<![\p{L}\p{N}])[А-ЯЁ][а-яё\-]{1,30}(?:[ \t]+[А-ЯЁ][а-яё\-]{1,30}){1,2}(?![\p{L}\p{N}])"#,
+            category: .person,
+            priority: 62
+        )
+
+        matches += fullNameCandidates.filter { looksLikeRussianPersonName($0.value) }
+        return matches
     }
 
     private func looksLikeRussianPersonName(_ value: String) -> Bool {
@@ -328,7 +343,8 @@ public struct AnonymizerEngine: Sendable {
 
         guard (2...3).contains(words.count) else { return false }
 
-        let hasFirstName = words.contains { Self.commonFirstNames.contains($0) }
+        let firstNameCount = words.filter { Self.commonFirstNames.contains($0) }.count
+        let hasFirstName = firstNameCount > 0
         let hasSurname = words.contains { word in
             Self.surnameEndings.contains { word.hasSuffix($0) }
         }
@@ -336,7 +352,12 @@ public struct AnonymizerEngine: Sendable {
             Self.patronymicEndings.contains { word.hasSuffix($0) }
         }
 
-        return (hasFirstName && hasSurname) || (words.count == 3 && hasFirstName && hasPatronymic)
+        if words.count == 2 && firstNameCount == 1 {
+            return true
+        }
+
+        return (hasFirstName && hasSurname)
+            || (words.count == 3 && hasFirstName && hasPatronymic)
     }
 
     private func resolveOverlaps(_ matches: [Match], within fullRange: NSRange) -> [Match] {

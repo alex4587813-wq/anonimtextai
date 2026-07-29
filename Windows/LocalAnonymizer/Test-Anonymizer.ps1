@@ -144,6 +144,73 @@ try {
         -Actual $invalidMaskResult.Text `
         -Expected 'Иванов и Иван'
 
+    $lineSeparatedNames = (
+        "Серова Татьяна`r`n" +
+        "Силаева Ирина`r`n" +
+        "Черноглазова Ольга`r`n`r`n" +
+        "Полыгаева Татьяна`r`n" +
+        'Солодовникова Ксения'
+    )
+    $lineSeparatedResult = Invoke-TextAnonymization -Text $lineSeparatedNames
+    Assert-Equal `
+        -Name 'ФИО не объединяются через перенос строки' `
+        -Actual $lineSeparatedResult.Text `
+        -Expected (
+            "[PERSON_001]`r`n" +
+            "[PERSON_002]`r`n" +
+            "[PERSON_003]`r`n`r`n" +
+            "[PERSON_004]`r`n" +
+            '[PERSON_005]'
+        )
+    Assert-Equal `
+        -Name 'Найдены все ФИО на отдельных строках' `
+        -Actual $lineSeparatedResult.Counts['PERSON'] `
+        -Expected 5
+
+    $abbreviatedNames = (
+        "А.Ковешников`r`n" +
+        "А. Майборода`r`n" +
+        "Ковешников А.`r`n" +
+        "А.А. Майборода`r`n" +
+        'Майборода А.А.'
+    )
+    $abbreviatedResult = Invoke-TextAnonymization -Text $abbreviatedNames
+    Assert-Equal `
+        -Name 'Сокращённые ФИО с инициалами' `
+        -Actual $abbreviatedResult.Text `
+        -Expected (
+            "[PERSON_001]`r`n" +
+            "[PERSON_002]`r`n" +
+            "[PERSON_003]`r`n" +
+            "[PERSON_004]`r`n" +
+            '[PERSON_005]'
+        )
+
+    $uncommonSurnameResult = Invoke-TextAnonymization `
+        -Text "Алексей Майборода`r`nМайборода Алексей"
+    Assert-Equal `
+        -Name 'Полное ФИО с нетипичным окончанием фамилии' `
+        -Actual $uncommonSurnameResult.Text `
+        -Expected "[PERSON_001]`r`n[PERSON_002]"
+
+    $structuredSettings = New-TestSettings `
+        -MandatoryCompanyTerms @(
+            'platformix.ru',
+            '+7 999 123-45-67',
+            '192.168.1.10'
+        )
+    $structuredResult = Invoke-TextAnonymization `
+        -Text (
+            "Dell-OPM-Request@platformix.ru`r`n" +
+            "+7 999 123-45-67`r`n" +
+            '192.168.1.10'
+        ) `
+        -Settings $structuredSettings
+    Assert-Equal `
+        -Name 'Замена слов не разделяет структурированные данные' `
+        -Actual $structuredResult.Text `
+        -Expected "[EMAIL_001]`r`n[PHONE_001]`r`n[IP_ADDRESS_001]"
+
     $requisiteSource = @'
 ИНН: 7707083893
 КПП: 773601001
