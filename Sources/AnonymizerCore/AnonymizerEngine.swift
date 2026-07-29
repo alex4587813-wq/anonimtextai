@@ -110,7 +110,7 @@ public struct AnonymizerEngine: Sendable {
                 && !isExcluded(match.value, normalizedExclusions: normalizedExclusions)
         }
 
-        matches += mandatoryCompanyMatches(
+        matches += replacementTermMatches(
             in: text,
             terms: settings.mandatoryCompanyTerms
         )
@@ -265,19 +265,26 @@ public struct AnonymizerEngine: Sendable {
         return matches
     }
 
-    private func mandatoryCompanyMatches(
+    private func replacementTermMatches(
         in text: String,
         terms: [String]
     ) -> [Match] {
         terms.flatMap { term -> [Match] in
-            let tokens = term
+            let rawTokens = term
                 .trimmingCharacters(in: .whitespacesAndNewlines)
                 .split(whereSeparator: \.isWhitespace)
-                .map { NSRegularExpression.escapedPattern(for: String($0)) }
 
-            guard !tokens.isEmpty else { return [] }
+            guard !rawTokens.isEmpty else { return [] }
 
-            let phrasePattern = tokens.joined(separator: #"[ \t]+"#)
+            var tokenPatterns: [String] = []
+            for token in rawTokens {
+                guard let pattern = replacementTokenPattern(String(token)) else {
+                    return []
+                }
+                tokenPatterns.append(pattern)
+            }
+
+            let phrasePattern = tokenPatterns.joined(separator: #"[ \t]+"#)
             let pattern = #"(?iu)(?<![\p{L}\p{N}])"# + phrasePattern + #"(?![\p{L}\p{N}])"#
 
             return regexMatches(
@@ -287,6 +294,20 @@ public struct AnonymizerEngine: Sendable {
                 priority: 120
             )
         }
+    }
+
+    private func replacementTokenPattern(_ token: String) -> String? {
+        guard !token.isEmpty else { return nil }
+
+        if token.hasSuffix("*") {
+            let prefix = String(token.dropLast())
+            guard !prefix.isEmpty, !prefix.contains("*") else { return nil }
+            return NSRegularExpression.escapedPattern(for: prefix)
+                + #"[\p{L}\p{M}\p{N}_-]*"#
+        }
+
+        guard !token.contains("*") else { return nil }
+        return NSRegularExpression.escapedPattern(for: token)
     }
 
     private func personHeuristicMatches(in text: String) -> [Match] {

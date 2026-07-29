@@ -197,6 +197,42 @@ private func testMandatoryReplacementUsesWordBoundaries() {
 }
 
 @MainActor
+private func testReplacementMaskMatchesWordEndings() {
+    let settings = AnonymizationSettings(
+        enabledCategories: [],
+        excludedTerms: [],
+        mandatoryCompanyTerms: ["Иванов*"]
+    )
+    let result = engine.anonymize(
+        "Иванов, Иванову и Ивановым; Иван и Псевдоиванов.",
+        settings: settings
+    )
+
+    checkEqual(
+        result.text,
+        "[COMPANY_001], [COMPANY_002] и [COMPANY_003]; Иван и Псевдоиванов.",
+        "маска со звёздочкой учитывает окончания и границу слова"
+    )
+}
+
+@MainActor
+private func testInvalidReplacementMasksAreIgnored() {
+    let settings = AnonymizationSettings(
+        enabledCategories: [],
+        excludedTerms: [],
+        mandatoryCompanyTerms: ["*", "Ива*нов"]
+    )
+    let source = "Иванов и Иван"
+    let result = engine.anonymize(source, settings: settings)
+
+    checkEqual(
+        result.text,
+        source,
+        "некорректные маски не заменяют текст"
+    )
+}
+
+@MainActor
 private func testOldSettingsReceiveDefaultMandatoryTerms() {
     let oldJSON = """
     {
@@ -313,6 +349,8 @@ testDisabledCategory()
 testDefaultMandatoryCompanies()
 testMandatoryReplacementHasHighestPriority()
 testMandatoryReplacementUsesWordBoundaries()
+testReplacementMaskMatchesWordEndings()
+testInvalidReplacementMasksAreIgnored()
 testOldSettingsReceiveDefaultMandatoryTerms()
 testCompanyRequisites()
 testPersonalRequisites()

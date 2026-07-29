@@ -1,4 +1,4 @@
-#requires -version 5.1
+﻿#requires -version 5.1
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -138,7 +138,7 @@ function Update-RulesSummary {
     $mandatoryCount = @($script:Settings.MandatoryCompanyTerms).Count
 
     $script:RulesSummary.Text = (
-        'Категории: {0} из {1} · Исключения: {2} · Обязательные замены: {3}' -f
+        'Категории: {0} из {1} · Исключения: {2} · Замены слов: {3}' -f
         $enabledCount,
         $categoryCount,
         $exclusionCount,

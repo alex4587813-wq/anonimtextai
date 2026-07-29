@@ -18,6 +18,8 @@ cleanup() {
 }
 trap cleanup EXIT
 
+"$project_dir/scripts/check-windows-source-encoding.sh"
+
 echo "[windows] Подготовка файлов"
 mkdir -p "$package_dir"
 ditto "$source_dir" "$package_dir"

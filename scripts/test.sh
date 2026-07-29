@@ -6,6 +6,8 @@ project_dir=${0:A:h:h}
 cache_dir="$project_dir/.build/local-cache"
 sdk_path="/Library/Developer/CommandLineTools/SDKs/MacOSX15.5.sdk"
 
+"$project_dir/scripts/check-windows-source-encoding.sh"
+
 if [[ ! -d "$sdk_path" ]]; then
     sdk_path=$(xcrun --sdk macosx --show-sdk-path)
 fi

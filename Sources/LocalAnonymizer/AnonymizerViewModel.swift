@@ -188,7 +188,7 @@ final class AnonymizerViewModel: ObservableObject {
         mandatoryCompanyDraft = ""
         saveSettingsAndInvalidateResult()
         logger.info(
-            "Mandatory company term added, total terms: \(updatedSettings.mandatoryCompanyTerms.count, privacy: .public)"
+            "Replacement term added, total terms: \(updatedSettings.mandatoryCompanyTerms.count, privacy: .public)"
         )
     }
 
@@ -200,7 +200,7 @@ final class AnonymizerViewModel: ObservableObject {
         settings = updatedSettings
         saveSettingsAndInvalidateResult()
         logger.info(
-            "Mandatory company term removed, total terms: \(updatedSettings.mandatoryCompanyTerms.count, privacy: .public)"
+            "Replacement term removed, total terms: \(updatedSettings.mandatoryCompanyTerms.count, privacy: .public)"
         )
     }
 

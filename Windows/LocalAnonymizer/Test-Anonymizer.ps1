@@ -1,4 +1,4 @@
-#requires -version 5.1
+﻿#requires -version 5.1
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -121,6 +121,28 @@ try {
         -Name 'Границы обязательного слова' `
         -Actual $boundaryResult.Text `
         -Expected 'УСИЛАТЬ и [COMPANY_001]'
+
+    $maskSettings = New-TestSettings `
+        -EnabledCategories @() `
+        -MandatoryCompanyTerms @('Иванов*')
+    $maskResult = Invoke-TextAnonymization `
+        -Text 'Иванов, Иванову и Ивановым; Иван и Псевдоиванов.' `
+        -Settings $maskSettings
+    Assert-Equal `
+        -Name 'Маска учитывает окончания и границу слова' `
+        -Actual $maskResult.Text `
+        -Expected '[COMPANY_001], [COMPANY_002] и [COMPANY_003]; Иван и Псевдоиванов.'
+
+    $invalidMaskSettings = New-TestSettings `
+        -EnabledCategories @() `
+        -MandatoryCompanyTerms @('*', 'Ива*нов')
+    $invalidMaskResult = Invoke-TextAnonymization `
+        -Text 'Иванов и Иван' `
+        -Settings $invalidMaskSettings
+    Assert-Equal `
+        -Name 'Некорректные маски игнорируются' `
+        -Actual $invalidMaskResult.Text `
+        -Expected 'Иванов и Иван'
 
     $requisiteSource = @'
 ИНН: 7707083893

@@ -26,7 +26,7 @@ struct RuleSettingsView: View {
                     "Категории: \(viewModel.settings.enabledCategories.count)"
                         + " из \(AnonymizerEngine.Category.allCases.count)"
                         + " · Исключения: \(viewModel.settings.excludedTerms.count)"
-                        + " · Обязательные замены: \(viewModel.settings.mandatoryCompanyTerms.count)"
+                        + " · Замены слов: \(viewModel.settings.mandatoryCompanyTerms.count)"
                 )
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -125,15 +125,15 @@ struct RuleSettingsView: View {
 
     private var mandatoryReplacementRules: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Обязательная замена организаций")
+            Text("Замена слов")
                 .font(.subheadline.weight(.semibold))
 
-            Text("Эти слова и фразы всегда заменяются как организация. Правило имеет приоритет над категориями и исключениями.")
+            Text("Эти слова и фразы заменяются всегда. Звёздочка в конце основы учитывает все окончания: Иванов* → Иванов, Иванову, Ивановым. Правило имеет приоритет над категориями и исключениями.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
             HStack {
-                TextField("Название организации", text: $viewModel.mandatoryCompanyDraft)
+                TextField("Слово или маска, например Иванов*", text: $viewModel.mandatoryCompanyDraft)
                     .textFieldStyle(.roundedBorder)
                     .onSubmit {
                         viewModel.addMandatoryCompanyTerm()
@@ -151,7 +151,7 @@ struct RuleSettingsView: View {
             }
 
             if viewModel.settings.mandatoryCompanyTerms.isEmpty {
-                Text("Обязательные замены не добавлены")
+                Text("Слова для замены не добавлены")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
                     .frame(height: 30)
@@ -170,7 +170,7 @@ struct RuleSettingsView: View {
                                         .foregroundStyle(.secondary)
                                 }
                                 .buttonStyle(.plain)
-                                .accessibilityLabel("Удалить обязательную замену \(term)")
+                                .accessibilityLabel("Удалить слово для замены \(term)")
                             }
                             .font(.callout)
                             .padding(.horizontal, 9)

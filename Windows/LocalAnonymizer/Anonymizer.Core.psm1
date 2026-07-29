@@ -1,4 +1,4 @@
-Set-StrictMode -Version Latest
+﻿Set-StrictMode -Version Latest
 
 $script:CategoryDisplayNames = [ordered]@{
     PERSON     = 'ФИО'
@@ -504,12 +504,42 @@ function Invoke-TextAnonymization {
             continue
         }
 
-        $escapedTokens = @(
-            [regex]::Split($term, '\s+') |
-                Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
-                ForEach-Object { [regex]::Escape($_) }
-        )
-        $phrasePattern = $escapedTokens -join '[ \t]+'
+        $escapedTokens = New-Object System.Collections.Generic.List[string]
+        $isValidTerm = $true
+
+        foreach ($rawToken in [regex]::Split($term, '\s+')) {
+            $token = ([string]$rawToken).Trim()
+            if ([string]::IsNullOrWhiteSpace($token)) {
+                continue
+            }
+
+            if ($token.EndsWith('*')) {
+                $prefix = $token.Substring(0, $token.Length - 1)
+                if (
+                    [string]::IsNullOrWhiteSpace($prefix) -or
+                    $prefix.Contains('*')
+                ) {
+                    $isValidTerm = $false
+                    break
+                }
+                $escapedTokens.Add(
+                    [regex]::Escape($prefix) + '[\p{L}\p{M}\p{N}_-]*'
+                ) | Out-Null
+            }
+            elseif ($token.Contains('*')) {
+                $isValidTerm = $false
+                break
+            }
+            else {
+                $escapedTokens.Add([regex]::Escape($token)) | Out-Null
+            }
+        }
+
+        if (-not $isValidTerm -or $escapedTokens.Count -eq 0) {
+            continue
+        }
+
+        $phrasePattern = @($escapedTokens) -join '[ \t]+'
         $mandatoryPattern = '(?<![\p{L}\p{N}])' +
             $phrasePattern +
             '(?![\p{L}\p{N}])'
