@@ -1,0 +1,12 @@
+КОЛЛЕГА РАБОТАЕТ НА WINDOWS
+Отправьте файл из папки Windows:
+LocalAnonymizer-Windows-1.0.2.zip
+
+КОЛЛЕГА РАБОТАЕТ НА MAC
+Отправьте файл из папки macOS:
+LocalAnonymizer-macOS-1.0.2.dmg
+
+Текущая версия для macOS предназначена для Mac с процессором
+Apple Silicon (M1, M2, M3, M4 и новее).
+
+Исходный код отправлять не нужно.
