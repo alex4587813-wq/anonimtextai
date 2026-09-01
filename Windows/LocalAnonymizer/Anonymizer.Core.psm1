@@ -382,7 +382,7 @@ function Invoke-TextAnonymization {
     Add-PatternDetections `
         -Target $matches `
         -Text $Text `
-        -Pattern '(?<![\p{L}\p{N}._%+\-])[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-ZА-ЯЁ]{2,}(?![\p{L}\p{N}_\-])' `
+        -Pattern '(?<![\p{L}\p{N}._%+\-])[\p{L}\p{N}._%+\-]+@[\p{L}\p{N}](?:[\p{L}\p{N}.\-]*[\p{L}\p{N}])?(?![\p{L}\p{N}_\-])' `
         -Category 'EMAIL' `
         -Priority 200
 

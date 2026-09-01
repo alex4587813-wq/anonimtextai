@@ -62,6 +62,29 @@ private func testRepeatedValues() {
 }
 
 @MainActor
+private func testBroadEmailFormats() {
+    let source = """
+    Внутренний адрес: user@server
+    Кириллица: иванов@компания.рф
+    В скобках: <A.Abramyan@platformix.ru>.
+    Не адреса: @, @company.ru и user@.
+    """
+    let result = engine.anonymize(source)
+
+    checkEqual(
+        result.text,
+        """
+        Внутренний адрес: [EMAIL_001]
+        Кириллица: [EMAIL_002]
+        В скобках: <[EMAIL_003]>.
+        Не адреса: @, @company.ru и user@.
+        """,
+        "любой полный фрагмент через @ заменяется целиком"
+    )
+    check(result.counts[.email] == 3, "найдены нестандартные и кириллические email")
+}
+
+@MainActor
 private func testCompanyLegalForm() {
     let result = engine.anonymize("Заказчик — ООО «Ромашка»")
     check(result.text == "Заказчик — [COMPANY_001]", "организация с правовой формой")
@@ -437,6 +460,7 @@ private func testUnlabeledNumberIsNotARequisite() {
 
 testSpecificationExample()
 testRepeatedValues()
+testBroadEmailFormats()
 testCompanyLegalForm()
 testIPValidation()
 testWhitespace()

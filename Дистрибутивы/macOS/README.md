@@ -5,7 +5,7 @@
 
 ## Файл
 
-[Скачать LocalAnonymizer-macOS-1.0.2.dmg](https://github.com/alex4587813-wq/anonimtextai/releases/download/v1.0.2/LocalAnonymizer-macOS-1.0.2.dmg)
+[Скачать LocalAnonymizer-macOS-1.0.3.dmg](https://github.com/alex4587813-wq/anonimtextai/releases/download/v1.0.3/LocalAnonymizer-macOS-1.0.3.dmg)
 
 После скачивания:
 
@@ -17,5 +17,5 @@
 SHA-256:
 
 ```text
-a2dfda086532a60cee47a4e615811c24fd9c8dc6b273870ff799a49135d29185
+f6eb253e0dddb34a61ff06b6189232f82e7cb09c5a6a5f5419eaa679b0bdfba3
 ```

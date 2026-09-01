@@ -75,6 +75,27 @@ try {
         -Actual $emailResult.Text `
         -Expected 'Напишите на [EMAIL_001]. Повторно: [EMAIL_001]'
 
+    $broadEmailSource = (
+        "Внутренний адрес: user@server`r`n" +
+        "Кириллица: иванов@компания.рф`r`n" +
+        "В скобках: <A.Abramyan@platformix.ru>.`r`n" +
+        'Не адреса: @, @company.ru и user@.'
+    )
+    $broadEmailResult = Invoke-TextAnonymization -Text $broadEmailSource
+    Assert-Equal `
+        -Name 'Любой полный фрагмент через @ заменяется целиком' `
+        -Actual $broadEmailResult.Text `
+        -Expected (
+            "Внутренний адрес: [EMAIL_001]`r`n" +
+            "Кириллица: [EMAIL_002]`r`n" +
+            "В скобках: <[EMAIL_003]>.`r`n" +
+            'Не адреса: @, @company.ru и user@.'
+        )
+    Assert-Equal `
+        -Name 'Нестандартные и кириллические email найдены' `
+        -Actual $broadEmailResult.Counts['EMAIL'] `
+        -Expected 3
+
     $companyResult = Invoke-TextAnonymization -Text 'Заказчик — ООО «Ромашка»'
     Assert-Equal `
         -Name 'Организация с правовой формой' `

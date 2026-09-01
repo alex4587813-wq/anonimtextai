@@ -4,7 +4,7 @@
 
 ## Файл
 
-[Скачать LocalAnonymizer-Windows-1.0.2.zip](https://github.com/alex4587813-wq/anonimtextai/releases/download/v1.0.2/LocalAnonymizer-Windows-1.0.2.zip)
+[Скачать LocalAnonymizer-Windows-1.0.3.zip](https://github.com/alex4587813-wq/anonimtextai/releases/download/v1.0.3/LocalAnonymizer-Windows-1.0.3.zip)
 
 После скачивания:
 
@@ -17,5 +17,5 @@
 SHA-256:
 
 ```text
-4cfdad55f39e890f5bb65440ce5518ee7b00811a257a0dcb56188258771c6567
+572b64c28875875fed0bdae2ce4b9f0899440880f9175f60d953e527255d547a
 ```

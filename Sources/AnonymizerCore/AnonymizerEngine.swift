@@ -57,7 +57,7 @@ public struct AnonymizerEngine: Sendable {
 
         matches += regexMatches(
             in: text,
-            pattern: #"(?i)(?<![\p{L}\p{N}._%+\-])[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-ZА-ЯЁ]{2,}(?![\p{L}\p{N}_\-])"#,
+            pattern: #"(?iu)(?<![\p{L}\p{N}._%+\-])[\p{L}\p{N}._%+\-]+@[\p{L}\p{N}](?:[\p{L}\p{N}.\-]*[\p{L}\p{N}])?(?![\p{L}\p{N}_\-])"#,
             category: .email,
             priority: 200
         )
